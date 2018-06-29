@@ -94,6 +94,15 @@ The following volumes will be created inside the `./volumes` folder:
  - 📁 `./volumes/zookeeper`
 
 
+## Q&A
+### ⚠️ Issues login into Zoonavigator?
+
+When you visit Zoonavigator (http://localhost:8003) the first time, you will be prompted to enter the following details 👇
+
+**Connetion string:** `zookeeper:2181`
+**no user / no password** just click Connect
+
+
 ## 💡 Ideas
 
 - Use hotel for a nice UI

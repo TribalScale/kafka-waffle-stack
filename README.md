@@ -20,7 +20,7 @@ Kafka stack with zookeeper, schema-registry, kafka-rest-proxy, kafka-connect, ka
 - schema-registry
   * schema-registry-ui
 
-## 🖥 Nice UI's to play with
+## 🖥 Nice UIs to play with
 
 - Kafka topics UI
 http://localhost:8000

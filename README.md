@@ -99,7 +99,7 @@ The following volumes will be created inside the `./volumes` folder:
 
 When you visit Zoonavigator (http://localhost:8003) the first time, you will be prompted to enter the following details 👇
 
-**Connetion string:** `zookeeper:2181`
+**Connection string:** `zookeeper:2181`
 **no user / no password** just click Connect
 
 ### ⚠️ Unable to connect your application to Kafka broker?

@@ -102,6 +102,12 @@ When you visit Zoonavigator (http://localhost:8003) the first time, you will be 
 **Connetion string:** `zookeeper:2181`
 **no user / no password** just click Connect
 
+### ⚠️ Unable to connect your application to Kafka broker?
+
+You may need to add the following line to `/etc/hosts`, `C:\Windows\system32\drivers\etc\hosts`, etc:
+
+`127.0.0.1 kafka`
+
 
 ## 💡 Ideas
 

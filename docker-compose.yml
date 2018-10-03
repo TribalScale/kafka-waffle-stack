@@ -52,6 +52,10 @@ services:
     depends_on:
       - zookeeper
 
+  # Written and open sourced by Confluent, the Schema Registry for Apache Kafka enables
+  # developers to define standard schemas for their events, share them across the
+  # organization and safely evolve them in a way that is backward compatible and future proof.
+  # https://www.confluent.io/confluent-schema-registry/
   schema-registry:
     image: confluentinc/cp-schema-registry:4.1.0
     hostname: schema-registry
@@ -59,9 +63,15 @@ services:
     ports:
       - "8081:8081"
     environment:
+      # Required. Schema Registry will contact ZooKeeper to figure out how to connect
+      # to the Kafka cluster.
       SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: zookeeper:2181
+      # Required. This is the hostname that Schema Registry will advertise in ZooKeeper.
       SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      # The address on which Schema Registry will listen for API requests.
       SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+    # Schema Registry relies upon both Kafka and ZooKeeper. This will instruct docker to wait
+    # until the zookeeper and kafka services are up before attempting to start Schema Registry.
     depends_on:
       - zookeeper
       - kafka

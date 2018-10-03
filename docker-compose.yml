@@ -131,14 +131,23 @@ services:
       - kafka
       - schema-registry
 
+  # Browse Kafka topics and understand what's happening on your cluster.
+  # Find topics / view topic metadata / browse topic data
+  # (kafka messages) / view topic configuration / download data.
+  # https://github.com/Landoop/kafka-topics-ui
   kafka-topics-ui:
     image: landoop/kafka-topics-ui:0.9.3
     hostname: kafka-topics-ui
     ports:
       - "8000:8000"
     environment:
+      # Required. Instructs the UI where it can find the Kafka REST Proxy.
       KAFKA_REST_PROXY_URL: "http://kafka-rest-proxy:8082/"
+      # This instructs the docker image to use Caddy to proxy traffic to kafka-topics-ui.
       PROXY: "true"
+    # kafka-topics-ui relies upon Kafka, ZooKeeper, Schema Registry, and Kafka REST.
+    # This will instruct docker to wait until those services are up
+    # before attempting to start kafka-topics-ui.
     depends_on:
       - zookeeper
       - kafka

@@ -154,30 +154,58 @@ services:
       - schema-registry
       - kafka-rest-proxy
 
+  # Kafka Connect, an open source component of Apache Kafka,
+  # is a framework for connecting Kafka with external systems
+  # such as databases, key-value stores, search indexes, and file systems.
+  # https://docs.confluent.io/current/connect/index.html
   kafka-connect:
     image: confluentinc/cp-kafka-connect:4.1.0
     hostname: kafka-connect
     ports:
       - "8083:8083"
     environment:
+      # Required.
+      # The list of Kafka brokers to connect to. This is only used for bootstrapping,
+      # the addresses provided here are used to initially connect to the cluster,
+      # after which the cluster can dynamically change. Thanks, ZooKeeper!
       CONNECT_BOOTSTRAP_SERVERS: "kafka:9092"
+      # Port for the REST API to listen on.
       CONNECT_REST_PORT: 8083
+      # Required. A unique string that identifies the Connect cluster group this worker belongs to.
       CONNECT_GROUP_ID: compose-connect-group
+      # Connect will actually use Kafka topics as a datastore for configuration and other data. #meta
+      # Required. The name of the topic where connector and task configuration data are stored.
       CONNECT_CONFIG_STORAGE_TOPIC: docker-connect-configs
+      # Required. The name of the topic where connector and task configuration offsets are stored.
       CONNECT_OFFSET_STORAGE_TOPIC: docker-connect-offsets
+      # Required. The name of the topic where connector and task configuration status updates are stored.
       CONNECT_STATUS_STORAGE_TOPIC: docker-connect-status
+      # Required. Converter class for key Connect data. This controls the format of the
+      # data that will be written to Kafka for source connectors or read from Kafka for sink connectors.
       CONNECT_KEY_CONVERTER: io.confluent.connect.avro.AvroConverter
+      # Allows connect to leverage the power of schema registry. Here we define it for key schemas.
       CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: 'http://schema-registry:8081'
+      # Required. Converter class for value Connect data. This controls the format of the
+      # data that will be written to Kafka for source connectors or read from Kafka for sink connectors.
       CONNECT_VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
+      # Allows connect to leverage the power of schema registry. Here we define it for value schemas.
       CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: 'http://schema-registry:8081'
+      # Required. Converter class for internal key Connect data that implements the Converter interface.
       CONNECT_INTERNAL_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      # Required. Converter class for offset value Connect data that implements the Converter interface.
       CONNECT_INTERNAL_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      # Required. The hostname that will be given out to other workers to connect to.
       CONNECT_REST_ADVERTISED_HOST_NAME: "kafka-connect"
       CONNECT_LOG4J_ROOT_LOGLEVEL: "INFO"
       CONNECT_LOG4J_LOGGERS: "org.apache.kafka.connect.runtime.rest=WARN,org.reflections=ERROR"
+      # The next three are required when running in a single-node cluster, as we are.
+      # We would be able to take the default (of 3) if we had three or more nodes in the cluster.
       CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: "1"
       CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: "1"
       CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: "1"
+    # kafka-connect relies upon Kafka, ZooKeeper, Schema Registry, and Kafka REST.
+    # This will instruct docker to wait until those services are up
+    # before attempting to start kafka-connect.
     depends_on:
       - zookeeper
       - kafka

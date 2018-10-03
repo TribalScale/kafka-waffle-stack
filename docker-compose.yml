@@ -22,21 +22,33 @@ services:
       - ./volumes/zookeeper/data:/data
       - ./volumes/zookeeper/datalog:/datalog
 
-
+  # Kafka is a distributed streaming platform. It is used to build real-time streaming
+  # data pipelines that reliably move data between systems and platforms, and to build
+  # real-time streaming applications that transform or react to the streams of data.
+  # http://kafka.apache.org/
   kafka:
     image: confluentinc/cp-kafka:4.1.0
     hostname: kafka
     ports:
       - "9092:9092"
     environment:
-      # add the entry "127.0.0.1    kafka1" to your /etc/hosts file
+      # Required. Kafka will publish this address to ZooKeeper so clients know
+      # how to get in touch with Kafka. "PLAINTEXT" indicates that no authentication
+      # mechanism will be used.
       KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka:9092"
+      # Required. Instructs Kafka how to get in touch with ZooKeeper.
       KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+      # The broker id for the server. If unset, a unique id will be automatically generated.
       KAFKA_BROKER_ID: 1
+      # Adds and/or overrides default loggers. All logs will go to stdout.
       KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
+      # Required when running in a single-node cluster, as we are. We would be able to take the default if we had
+      # three or more nodes in the cluster.
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     volumes:
       - ./volumes/kafka/data:/var/lib/kafka/data
+    # As Kafka relies upon ZooKeeper, this will instruct docker to wait until the zookeeper service
+    # is up before attempting to start Kafka.
     depends_on:
       - zookeeper
 

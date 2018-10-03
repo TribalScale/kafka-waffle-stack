@@ -96,17 +96,36 @@ services:
     depends_on:
       - schema-registry
 
+  # The Kafka REST Proxy provides a RESTful interface to a Kafka cluster.
+  # It makes it easy to produce and consume messages, view the state
+  # of the cluster, and perform administrative actions without using
+  # the native Kafka protocol or clients.
+  # https://github.com/confluentinc/kafka-rest
   kafka-rest-proxy:
     image: confluentinc/cp-kafka-rest:4.1.0
     hostname: kafka-rest-proxy
     ports:
       - "8082:8082"
     environment:
+      # Specifies the ZooKeeper connection string. This service connects
+      # to ZooKeeper so that it can broadcast its endpoints as well as
+      # react to the dynamic topology of the Kafka cluster.
       KAFKA_REST_ZOOKEEPER_CONNECT: zookeeper:2181
+      # The address on which Kafka REST will listen for API requests.
       KAFKA_REST_LISTENERS: http://0.0.0.0:8082/
+      # The base URL for Schema Registry that should be used by the Avro serializer.
       KAFKA_REST_SCHEMA_REGISTRY_URL: http://schema-registry:8081/
+      # Required. This is the hostname used to generate absolute URLs in responses.
+      # It defaults to the Java canonical hostname for the container, which might
+      # not be resolvable in a Docker environment.
       KAFKA_REST_HOST_NAME: kafka-rest-proxy
+      # The list of Kafka brokers to connect to. This is only used for bootstrapping,
+      # the addresses provided here are used to initially connect to the cluster,
+      # after which the cluster will dynamically change. Thanks, ZooKeeper!
       KAFKA_REST_BOOTSTRAP_SERVERS: kafka:9092
+    # Kafka REST relies upon Kafka, ZooKeeper, and Schema Registry.
+    # This will instruct docker to wait until those services are up
+    # before attempting to start Kafka REST.
     depends_on:
       - zookeeper
       - kafka

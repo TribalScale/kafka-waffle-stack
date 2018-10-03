@@ -1,10 +1,17 @@
 version: '3'
 
 services:
+  # ZooKeeper is a centralized service for maintaining configuration information,
+  # naming, providing distributed synchronization, and providing group services.
+  # It provides distributed coordination for our Kafka cluster.
+  # http://zookeeper.apache.org/
   zookeeper:
     image: zookeeper:3.4.9
+    # ZooKeeper is designed to "fail-fast", so it is important to allow it to
+    # restart automatically.
     restart: unless-stopped
     hostname: zookeeper
+    # We'll expose the ZK client port so that we can connect to it from our applications.
     ports:
       - "2181:2181"
     environment:

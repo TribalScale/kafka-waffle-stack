@@ -212,14 +212,23 @@ services:
       - schema-registry
       - kafka-rest-proxy
 
+  # This is a web tool for Kafka Connect for setting up and managing connectors for multiple connect clusters.
+  # https://github.com/Landoop/kafka-connect-ui
   kafka-connect-ui:
     image: landoop/kafka-connect-ui:0.9.4
     hostname: kafka-connect-ui
+    # kafka-connect-ui binds to port 8000, but we are going to expose it on our local
+    # machine on port 8002.
     ports:
       - "8002:8000"
     environment:
+      # Required. Instructs the UI where it can find Kafka Connect.
       CONNECT_URL: "http://kafka-connect:8083/"
+      # This instructs the docker image to use Caddy to proxy traffic to kafka-connect-ui.
       PROXY: "true"
+    # kafka-connect-ui relies upon Kafka Connect.
+    # This will instruct docker to wait until those services are up
+    # before attempting to start kafka-connect-ui.
     depends_on:
       - kafka-connect
 

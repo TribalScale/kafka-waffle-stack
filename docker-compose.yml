@@ -76,14 +76,23 @@ services:
       - zookeeper
       - kafka
 
+  # A web tool that allows you to create / view / search / evolve / view
+  # history & configure Avro schemas of your Kafka cluster.
+  # https://github.com/Landoop/schema-registry-ui
   schema-registry-ui:
     image: landoop/schema-registry-ui:0.9.4
     hostname: schema-registry-ui
+    # schema-registry-ui binds to port 8000, but we are going to expose it on our local
+    # machine on port 8001.
     ports:
       - "8001:8000"
     environment:
+      # Required. Instructs the UI where it can find the schema registry.
       SCHEMAREGISTRY_URL: http://schema-registry:8081/
+      # This instructs the docker image to use Caddy to proxy traffic to schema-registry-ui.
       PROXY: "true"
+    # As this is a UI for Schema Registry, we rely upon Schema Registry. Docker will wait for
+    # the schema-registry service to be up before staring schema-registry-ui.
     depends_on:
       - schema-registry
 

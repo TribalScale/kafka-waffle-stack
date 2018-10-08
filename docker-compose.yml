@@ -166,7 +166,7 @@ services:
       # The list of Kafka brokers to connect to. This is only used for bootstrapping,
       # the addresses provided here are used to initially connect to the cluster,
       # after which the cluster can dynamically change. Thanks, ZooKeeper!
-      KSQL_BOOTSTRAP_SERVERS: kafka:39092
+      KSQL_BOOTSTRAP_SERVERS: kafka:9092
       # Controls the REST API endpoint for the KSQL server.
       KSQL_LISTENERS: http://0.0.0.0:8088
       # The Schema Registry URL path to connect KSQL to.

@@ -20,6 +20,8 @@ Kafka stack with zookeeper, schema-registry, kafka-rest-proxy, kafka-connect, ka
 - schema-registry
   * schema-registry-ui
 
+- ksql
+
 ## 🖥 Nice UIs to play with
 
 - Kafka topics UI
@@ -51,6 +53,54 @@ curl -X POST -H "Content-Type: application/vnd.kafka.json.v2+json" -H "Accept: a
 ```
 
 > 📝 You can import 👆 into Postman to play with the values. `Import > plain text`
+
+## Generating data into the kafka cluster
+### simulate "user" data
+```sh
+docker run --network kafka-waffle-stack_default --rm --name datagen-users \
+    confluentinc/ksql-examples:5.0.0 \
+    ksql-datagen \
+        bootstrap-server=kafka:9092 \
+        quickstart=users \
+        format=json \
+        topic=users \
+        maxInterval=100
+```
+
+### simulate "pageview" data
+```sh
+docker run --network kafka-waffle-stack_default --rm --name datagen-pageviews \
+    confluentinc/ksql-examples:5.0.0 \
+    ksql-datagen \
+        bootstrap-server=kafka:9092 \
+        quickstart=pageviews \
+        format=delimited \
+        topic=pageviews \
+        maxInterval=500
+```
+
+## Connecting a ksql cli instance to ksql-server
+```sh
+docker run --network=kafka-waffle-stack_default -it confluentinc/cp-ksql-cli:5.0.0 http://ksql-server:8088
+```
+
+### Playing around with ksql
+1. Run the "user" and "pageview" data generators
+2. Run a ksql cli container connected to the ksql-server
+3. Create a ksql stream: `CREATE STREAM pageviews_original (viewtime bigint, userid varchar, pageid varchar) WITH (kafka_topic='pageviews', value_format='DELIMITED');`
+4. Create a ksql table: `CREATE TABLE users_original (registertime BIGINT, gender VARCHAR, regionid VARCHAR, userid VARCHAR) WITH (kafka_topic='users', value_format='JSON', key = 'userid');`
+5. Run a one-off query to select data from a stream: `SELECT pageid FROM pageviews_original LIMIT 3;`
+6. Create a persistent query that joins two topics together and writes to another topic:
+```
+      CREATE STREAM pageviews_enriched AS \
+      SELECT users_original.userid AS userid, pageid, regionid, gender \
+      FROM pageviews_original \
+      LEFT JOIN users_original \
+        ON pageviews_original.userid = users_original.userid;
+```
+7. View the results as they come in (CTRL+c to cancel, note that this does not end the underlying query): `SELECT * FROM pageviews_enriched;`
+
+Check out [the source documentation](https://docs.confluent.io/current/ksql/docs/tutorials/basics-docker.html#ksql-quickstart-docker) for more fun examples!
 
 
 ## 🔍 Want to take a 👀 inside the machines?

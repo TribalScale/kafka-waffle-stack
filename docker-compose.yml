@@ -14,10 +14,6 @@ services:
     # We'll expose the ZK client port so that we can connect to it from our applications.
     ports:
       - "2181:2181"
-    environment:
-        ZOO_MY_ID: 1
-        ZOO_PORT: 2181
-        ZOO_SERVERS: server.1=zookeeper:2888:3888
     volumes:
       - ./volumes/zookeeper/data:/data
       - ./volumes/zookeeper/datalog:/datalog
@@ -38,10 +34,6 @@ services:
       KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka:9092"
       # Required. Instructs Kafka how to get in touch with ZooKeeper.
       KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
-      # The broker id for the server. If unset, a unique id will be automatically generated.
-      KAFKA_BROKER_ID: 1
-      # Adds and/or overrides default loggers. All logs will go to stdout.
-      KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
       # Required when running in a single-node cluster, as we are. We would be able to take the default if we had
       # three or more nodes in the cluster.
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
@@ -68,8 +60,6 @@ services:
       SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: zookeeper:2181
       # Required. This is the hostname that Schema Registry will advertise in ZooKeeper.
       SCHEMA_REGISTRY_HOST_NAME: schema-registry
-      # The address on which Schema Registry will listen for API requests.
-      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
     # Schema Registry relies upon both Kafka and ZooKeeper. This will instruct docker to wait
     # until the zookeeper and kafka services are up before attempting to start Schema Registry.
     depends_on:
@@ -145,13 +135,10 @@ services:
       KAFKA_REST_PROXY_URL: "http://kafka-rest-proxy:8082/"
       # This instructs the docker image to use Caddy to proxy traffic to kafka-topics-ui.
       PROXY: "true"
-    # kafka-topics-ui relies upon Kafka, ZooKeeper, Schema Registry, and Kafka REST.
+    # kafka-topics-ui relies upon Kafka REST.
     # This will instruct docker to wait until those services are up
     # before attempting to start kafka-topics-ui.
     depends_on:
-      - zookeeper
-      - kafka
-      - schema-registry
       - kafka-rest-proxy
 
   # Kafka Connect, an open source component of Apache Kafka,
@@ -169,8 +156,6 @@ services:
       # the addresses provided here are used to initially connect to the cluster,
       # after which the cluster can dynamically change. Thanks, ZooKeeper!
       CONNECT_BOOTSTRAP_SERVERS: "kafka:9092"
-      # Port for the REST API to listen on.
-      CONNECT_REST_PORT: 8083
       # Required. A unique string that identifies the Connect cluster group this worker belongs to.
       CONNECT_GROUP_ID: compose-connect-group
       # Connect will actually use Kafka topics as a datastore for configuration and other data. #meta
@@ -196,21 +181,17 @@ services:
       CONNECT_INTERNAL_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
       # Required. The hostname that will be given out to other workers to connect to.
       CONNECT_REST_ADVERTISED_HOST_NAME: "kafka-connect"
-      CONNECT_LOG4J_ROOT_LOGLEVEL: "INFO"
-      CONNECT_LOG4J_LOGGERS: "org.apache.kafka.connect.runtime.rest=WARN,org.reflections=ERROR"
       # The next three are required when running in a single-node cluster, as we are.
       # We would be able to take the default (of 3) if we had three or more nodes in the cluster.
       CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: "1"
       CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: "1"
       CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: "1"
-    # kafka-connect relies upon Kafka, ZooKeeper, Schema Registry, and Kafka REST.
+    # kafka-connect relies upon Kafka and ZooKeeper.
     # This will instruct docker to wait until those services are up
     # before attempting to start kafka-connect.
     depends_on:
       - zookeeper
       - kafka
-      - schema-registry
-      - kafka-rest-proxy
 
   # This is a web tool for Kafka Connect for setting up and managing connectors for multiple connect clusters.
   # https://github.com/Landoop/kafka-connect-ui
@@ -232,30 +213,6 @@ services:
     depends_on:
       - kafka-connect
 
-  # Web client for ZooNavigator, web-based browser & editor for ZooKeeper.
-  # https://github.com/elkozmon/zoonavigator-web
-  zoonavigator-web:
-    image: elkozmon/zoonavigator-web:0.4.0
-    # zoonavigator-web binds to port 8000, but we are going to expose it on our local
-    # machine on port 8002.
-    ports:
-     - "8003:8000"
-    environment:
-      # The following two keys instruct the web component how to connect to
-      # the backing api component.
-      API_HOST: "zoonavigator-api"
-      API_PORT: 9000
-    # This allows the container to reach the api via a hostname that is identical
-    # to the name of the service being linked to.
-    links:
-     - zoonavigator-api
-    # zoonavigator-web relies upon zoonavigator-api.
-    # This will instruct docker to wait until those services are up
-    # before attempting to start zoonavigator-web.
-    depends_on:
-     - zoonavigator-api
-    restart: unless-stopped
-
   # API for ZooNavigator, web-based browser & editor for ZooKeeper.
   # https://github.com/elkozmon/zoonavigator-api
   zoonavigator-api:
@@ -269,6 +226,26 @@ services:
     # before attempting to start zoonavigator-api.
     depends_on:
       - zookeeper
+
+  # Web client for ZooNavigator, web-based browser & editor for ZooKeeper.
+  # https://github.com/elkozmon/zoonavigator-web
+  zoonavigator-web:
+    image: elkozmon/zoonavigator-web:0.4.0
+    # zoonavigator-web binds to port 8000, but we are going to expose it on our local
+    # machine on port 8002.
+    ports:
+      - "8003:8000"
+    environment:
+      # The following two keys instruct the web component how to connect to
+      # the backing api component.
+      API_HOST: "zoonavigator-api"
+      API_PORT: 9000
+    # zoonavigator-web relies upon zoonavigator-api.
+    # This will instruct docker to wait until those services are up
+    # before attempting to start zoonavigator-web.
+    depends_on:
+      - zoonavigator-api
+    restart: unless-stopped
 
   # KSQL is the open source streaming SQL engine for Apache Kafka.
   # It provides an easy-to-use yet powerful interactive SQL

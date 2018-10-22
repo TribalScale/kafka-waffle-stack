@@ -213,30 +213,6 @@ services:
     depends_on:
       - kafka-connect
 
-  # Web client for ZooNavigator, web-based browser & editor for ZooKeeper.
-  # https://github.com/elkozmon/zoonavigator-web
-  zoonavigator-web:
-    image: elkozmon/zoonavigator-web:0.4.0
-    # zoonavigator-web binds to port 8000, but we are going to expose it on our local
-    # machine on port 8002.
-    ports:
-      - "8003:8000"
-    environment:
-      # The following two keys instruct the web component how to connect to
-      # the backing api component.
-      API_HOST: "zoonavigator-api"
-      API_PORT: 9000
-    # This allows the container to reach the api via a hostname that is identical
-    # to the name of the service being linked to.
-    links:
-      - zoonavigator-api
-    # zoonavigator-web relies upon zoonavigator-api.
-    # This will instruct docker to wait until those services are up
-    # before attempting to start zoonavigator-web.
-    depends_on:
-      - zoonavigator-api
-    restart: unless-stopped
-
   # API for ZooNavigator, web-based browser & editor for ZooKeeper.
   # https://github.com/elkozmon/zoonavigator-api
   zoonavigator-api:
@@ -250,6 +226,26 @@ services:
     # before attempting to start zoonavigator-api.
     depends_on:
       - zookeeper
+
+  # Web client for ZooNavigator, web-based browser & editor for ZooKeeper.
+  # https://github.com/elkozmon/zoonavigator-web
+  zoonavigator-web:
+    image: elkozmon/zoonavigator-web:0.4.0
+    # zoonavigator-web binds to port 8000, but we are going to expose it on our local
+    # machine on port 8002.
+    ports:
+      - "8003:8000"
+    environment:
+      # The following two keys instruct the web component how to connect to
+      # the backing api component.
+      API_HOST: "zoonavigator-api"
+      API_PORT: 9000
+    # zoonavigator-web relies upon zoonavigator-api.
+    # This will instruct docker to wait until those services are up
+    # before attempting to start zoonavigator-web.
+    depends_on:
+      - zoonavigator-api
+    restart: unless-stopped
 
   # KSQL is the open source streaming SQL engine for Apache Kafka.
   # It provides an easy-to-use yet powerful interactive SQL

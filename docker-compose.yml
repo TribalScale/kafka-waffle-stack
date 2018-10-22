@@ -60,8 +60,6 @@ services:
       SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: zookeeper:2181
       # Required. This is the hostname that Schema Registry will advertise in ZooKeeper.
       SCHEMA_REGISTRY_HOST_NAME: schema-registry
-      # The address on which Schema Registry will listen for API requests.
-      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
     # Schema Registry relies upon both Kafka and ZooKeeper. This will instruct docker to wait
     # until the zookeeper and kafka services are up before attempting to start Schema Registry.
     depends_on:

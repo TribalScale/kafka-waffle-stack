@@ -135,13 +135,10 @@ services:
       KAFKA_REST_PROXY_URL: "http://kafka-rest-proxy:8082/"
       # This instructs the docker image to use Caddy to proxy traffic to kafka-topics-ui.
       PROXY: "true"
-    # kafka-topics-ui relies upon Kafka, ZooKeeper, Schema Registry, and Kafka REST.
+    # kafka-topics-ui relies upon Kafka REST.
     # This will instruct docker to wait until those services are up
     # before attempting to start kafka-topics-ui.
     depends_on:
-      - zookeeper
-      - kafka
-      - schema-registry
       - kafka-rest-proxy
 
   # Kafka Connect, an open source component of Apache Kafka,
@@ -189,7 +186,7 @@ services:
       CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: "1"
       CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: "1"
       CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: "1"
-    # kafka-connect relies upon Kafka, ZooKeeper, Schema Registry, and Kafka REST.
+    # kafka-connect relies upon Kafka and ZooKeeper.
     # This will instruct docker to wait until those services are up
     # before attempting to start kafka-connect.
     depends_on:
